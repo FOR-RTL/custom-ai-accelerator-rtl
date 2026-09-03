@@ -1,0 +1,3 @@
+-Isim/tb_mac/obj_dir
+-I/opt/homebrew/Cellar/verilator/5.050/share/verilator/include
+-I/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/vltstd
