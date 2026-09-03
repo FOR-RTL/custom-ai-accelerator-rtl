@@ -1,0 +1,86 @@
+# ==========================================
+# 1. OS 특화 파일 (macOS & Linux)
+# ==========================================
+# macOS 특유의 폴더 캐싱 및 설정 파일
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Linux 임시 파일
+*~
+.fuse_hidden*
+
+# ==========================================
+# 2. 에디터 특화 파일 (Neovim / Vim / VSCode)
+# ==========================================
+# Neovim/Vim swap 및 백업 파일
+*.swp
+*.swo
+.netrwhist
+Session.vim
+
+# VSCode 설정 (개인 설정만 무시, 협업이 필요하면 주석 처리)
+.vscode/
+
+# ==========================================
+# 3. 시뮬레이션 및 파형 파일 (가장 중요 ⭐️)
+# ==========================================
+# Verilator 빌드 결과물 (자동 생성되는 C++ 코드 및 컴파일 파일)
+obj_dir/
+
+# C/C++ 컴파일 부산물 및 실행 파일
+*.o
+*.out
+*.exe
+*.a
+*.so
+
+# 하드웨어 파형 파일 (수백 MB ~ 수 GB까지 커지므로 절대 Git에 올리면 안 됨)
+*.vcd
+*.fst
+*.fsdb
+*.vpd
+sim/waves/
+
+# ==========================================
+# 4. 합성 툴 찌꺼기 (Intel Quartus Prime)
+# ==========================================
+# Quartus가 컴파일할 때 쏟아내는 엄청난 양의 임시 폴더와 리포트들
+db/
+incremental_db/
+output_files/
+qdb/
+greybox_tmp/
+simulation/
+*.rpt
+*.smsg
+*.summary
+*.done
+*.pin
+*.jdi
+*.sld
+*.sof
+*.pof
+*.qws
+*.qqq
+*.qdf
+*.bak
+
+# ==========================================
+# 5. Golden Reference (Python / PyTorch)
+# ==========================================
+# Python 컴파일 파일 및 가상환경
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# PyTorch가 뽑아내는 거대한 데이터 파일들 (용량이 크다면 무시)
+# 만약 테스트용으로 만든 작은 .hex 파일은 Git에 올리고 싶다면 아래 두 줄은 주석 처리하세요.
+# *.hex
+# *.txt
