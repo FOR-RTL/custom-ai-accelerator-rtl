@@ -84,3 +84,4 @@ env/
 # 만약 테스트용으로 만든 작은 .hex 파일은 Git에 올리고 싶다면 아래 두 줄은 주석 처리하세요.
 # *.hex
 # *.txt
+compile_flags.txt
