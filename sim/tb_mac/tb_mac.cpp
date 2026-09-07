@@ -1,8 +1,10 @@
-#include "Vmac_unit.h"
+#include "Vsystolic_array_nxn.h"
 #include <iomanip>
 #include <iostream>
 #include <verilated.h>
 #include <verilated_vcd_c.h>
+
+#define N 3
 
 vluint64_t main_time = 0;
 
@@ -10,67 +12,66 @@ int main(int argc, char **argv) {
   Verilated::commandArgs(argc, argv);
   Verilated::traceEverOn(true);
 
-  Vmac_unit *dut = new Vmac_unit();
+  Vsystolic_array_nxn *dut = new Vsystolic_array_nxn();
   VerilatedVcdC *tfp = new VerilatedVcdC();
-
   dut->trace(tfp, 99);
-  tfp->open("../waves/systolic_wave.vcd");
+  tfp->open("../waves/systolic_nxn_wave.vcd");
 
   auto tick = [&]() {
     dut->eval();
     tfp->dump(main_time++);
-
     dut->clk = 1;
     dut->eval();
     tfp->dump(main_time++);
-
     dut->clk = 0;
     dut->eval();
     tfp->dump(main_time++);
   };
 
-  // 1. 데이터 스큐잉 (Data Skewing) 셋업 - 빈 공간은 0으로 채움
-  // A = [[1,2], [3,4]], B = [[5,6], [7,8]]
-  int row_in_0_seq[] = {1, 2, 0, 0, 0, 0, 0};
-  int row_in_1_seq[] = {0, 3, 4, 0, 0, 0, 0}; // 1 사이클 지연
+  int A[N][N] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+  int B[N][N] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
 
-  int col_in_0_seq[] = {5, 7, 0, 0, 0, 0, 0};
-  int col_in_1_seq[] = {0, 6, 8, 0, 0, 0, 0}; // 1 사이클 지연
-
-  // 2. 리셋
   dut->rst_n = 0;
-  dut->row_in_0 = 0;
-  dut->row_in_1 = 0;
-  dut->col_in_0 = 0;
-  dut->col_in_1 = 0;
+  for (int i = 0; i < N; i++) {
+    dut->row_in[i] = 0;
+    dut->col_in[i] = 0;
+  }
   tick();
   dut->rst_n = 1;
 
-  // 3. 사이클별로 데이터 주입 및 관찰
-  std::cout << "=======================================\n";
-  std::cout << " 2x2 Systolic Array Simulation Start!\n";
-  std::cout << "=======================================\n";
+  int TOTAL_CYCLES = 3 * N;
 
-  for (int cycle = 0; cycle < 6; cycle++) {
-    // 입력 포트에 사이클에 맞는 데이터 주입
-    dut->row_in_0 = row_in_0_seq[cycle];
-    dut->row_in_1 = row_in_1_seq[cycle];
-    dut->col_in_0 = col_in_0_seq[cycle];
-    dut->col_in_1 = col_in_1_seq[cycle];
+  std::cout << "🚀 " << N << "x" << N
+            << " Systolic Array Simulation Start!\n\n";
 
-    tick(); // 1 클럭 진행! (이때 하드웨어 연산 발생)
+  for (int cycle = 0; cycle < TOTAL_CYCLES; cycle++) {
 
-    // 현재 사이클의 상태 출력
-    std::cout << "\n[ Cycle " << cycle + 1 << " ]\n";
-    std::cout << "Inputs  -> Row0:" << dut->row_in_0
-              << " Row1:" << dut->row_in_1 << " / Col0:" << dut->col_in_0
-              << " Col1:" << dut->col_in_1 << "\n";
+    for (int i = 0; i < N; i++) {
 
-    // 2x2 형태를 시각적으로 터미널에 출력
-    std::cout << "  [" << std::setw(2) << dut->output_acc00 << "]  ["
-              << std::setw(2) << dut->output_acc01 << "]\n";
-    std::cout << "  [" << std::setw(2) << dut->output_acc10 << "]  ["
-              << std::setw(2) << dut->output_acc11 << "]\n";
+      if (cycle >= i && cycle - i < N) {
+        dut->row_in[i] = A[i][cycle - i];
+      } else {
+        dut->row_in[i] = 0;
+      }
+
+      if (cycle >= i && cycle - i < N) {
+        dut->col_in[i] = B[cycle - i][i];
+      } else {
+        dut->col_in[i] = 0;
+      }
+    }
+
+    tick();
+
+    std::cout << "[ Cycle " << cycle + 1 << " ]\n";
+    for (int i = 0; i < N; i++) {
+      std::cout << "  ";
+      for (int j = 0; j < N; j++) {
+        std::cout << "[" << std::setw(3) << dut->out_acc[i][j] << "] ";
+      }
+      std::cout << "\n";
+    }
+    std::cout << "------------------------\n";
   }
 
   dut->final();
