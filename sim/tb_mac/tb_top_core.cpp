@@ -1,4 +1,4 @@
-#include "Vsystolic_array_nxn.h"
+#include "Vtop_core.h" // 이름이 바뀐 최상위 헤더!
 #include <iomanip>
 #include <iostream>
 #include <verilated.h>
@@ -12,10 +12,10 @@ int main(int argc, char **argv) {
   Verilated::commandArgs(argc, argv);
   Verilated::traceEverOn(true);
 
-  Vsystolic_array_nxn *dut = new Vsystolic_array_nxn();
+  Vtop_core *dut = new Vtop_core();
   VerilatedVcdC *tfp = new VerilatedVcdC();
   dut->trace(tfp, 99);
-  tfp->open("../waves/systolic_nxn_wave.vcd");
+  tfp->open("../waves/top_core_wave.vcd");
 
   auto tick = [&]() {
     dut->eval();
@@ -33,31 +33,28 @@ int main(int argc, char **argv) {
 
   dut->rst_n = 0;
   for (int i = 0; i < N; i++) {
-    dut->row_in[i] = 0;
-    dut->col_in[i] = 0;
+    dut->flat_row_in[i] = 0;
+    dut->flat_col_in[i] = 0;
   }
   tick();
   dut->rst_n = 1;
 
   int TOTAL_CYCLES = 3 * N;
-
-  std::cout << "🚀 " << N << "x" << N
-            << " Systolic Array Simulation Start!\n\n";
+  std::cout << "🚀 Hardware Skewing " << N << "x" << N
+            << " Simulation Start!\n\n";
 
   for (int cycle = 0; cycle < TOTAL_CYCLES; cycle++) {
 
+    // ✨ 이 테스트벤치의 하이라이트: 복잡한 엇갈림 계산이 싹 사라짐! ✨
     for (int i = 0; i < N; i++) {
-
-      if (cycle >= i && cycle - i < N) {
-        dut->row_in[i] = A[i][cycle - i];
+      if (cycle < N) {
+        // 그냥 정직하게 cycle 인덱스에 맞춰 데이터를 통째로 밀어넣음
+        dut->flat_row_in[i] = A[i][cycle];
+        dut->flat_col_in[i] = B[cycle][i];
       } else {
-        dut->row_in[i] = 0;
-      }
-
-      if (cycle >= i && cycle - i < N) {
-        dut->col_in[i] = B[cycle - i][i];
-      } else {
-        dut->col_in[i] = 0;
+        // N 사이클 이후에는 데이터를 다 넣었으니 빈 값(0)만 줌
+        dut->flat_row_in[i] = 0;
+        dut->flat_col_in[i] = 0;
       }
     }
 
